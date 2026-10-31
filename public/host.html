@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patata! · Host</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Archivo:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="/style.css">
+<style>
+/* Host screen: built to be read from across a room, on a TV or a shared video call */
+.wrap { max-width: 1100px; }
+body.host { padding-left: max(56px, env(safe-area-inset-left, 0px)); padding-right: max(56px, env(safe-area-inset-right, 0px)); padding-block: 56px; }
+body.host::before { content: ""; position: fixed; inset: 8px; border-radius: 30px; border: 24px solid var(--red); box-shadow: inset 0 0 0 3px var(--ink), 0 0 0 3px var(--ink); pointer-events: none; z-index: 0; }
+body.host::after { content: ""; position: fixed; inset: 8px; border-radius: 30px; pointer-events: none; z-index: 0; background: radial-gradient(circle, #FFFDF0 0 2.5px, #FFD84A 3.5px 6.5px, var(--ink) 7px 8.5px, transparent 9px) -6px -6px / 36px 36px; -webkit-mask: linear-gradient(#000 0 0) top/100% 24px no-repeat, linear-gradient(#000 0 0) bottom/100% 24px no-repeat, linear-gradient(#000 0 0) left/24px 100% no-repeat, linear-gradient(#000 0 0) right/24px 100% no-repeat; mask: linear-gradient(#000 0 0) top/100% 24px no-repeat, linear-gradient(#000 0 0) bottom/100% 24px no-repeat, linear-gradient(#000 0 0) left/24px 100% no-repeat, linear-gradient(#000 0 0) right/24px 100% no-repeat; }
+
+.wrap { position: relative; z-index: 1; }
+.host .clock { font-size: clamp(44px, 6vw, 80px); }
+.host .fuse { height: 22px; border-radius: 12px; }
+.host .fuse div { background: repeating-linear-gradient(-45deg, var(--yellow) 0 14px, var(--red) 14px 28px); }
+.code { font-family: var(--display); font-size: clamp(64px, 12vw, 140px); line-height: 1; letter-spacing: 0.08em; color: #FFFFFF; background: var(--ink); border-radius: 18px; padding: 10px 24px; align-self: flex-start; }
+.stage { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 820px) { .stage { grid-template-columns: 1fr; } }
+.joinurl { font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; overflow-wrap: anywhere; }
+.host .question { font-size: clamp(28px, 4vw, 48px); }
+.host .clock { font-size: clamp(36px, 5vw, 64px); }
+.host .fuse { height: 14px; border-radius: 7px; }
+.status { font-size: 14px; font-weight: 700; }
+.status { color: var(--muted); }
+.status.hit { color: var(--up); }
+.answer { font-family: var(--display); font-size: clamp(48px, 8vw, 96px); line-height: 1; color: var(--accent); overflow-wrap: anywhere; }
+.host .fact { font-size: clamp(16px, 2vw, 22px); }
+.podium { display: flex; gap: 12px; justify-content: center; align-items: flex-end; flex-wrap: wrap; }
+.podium div { background: var(--card); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--yellow); border-radius: 16px 16px 0 0; padding: 14px 18px; min-width: 140px; text-align: center; display: flex; flex-direction: column; gap: 4px; }
+.podium .p1 { min-height: 210px; background: var(--yellow); box-shadow: 4px 4px 0 var(--red); }
+.podium .p2 { min-height: 150px; }
+.podium .p3 { min-height: 120px; }
+.podium b { font-family: var(--display); font-size: 32px; }
+.podium span { font-weight: 800; overflow-wrap: anywhere; }
+</style>
+</head>
+<body class="host">
+<div class="wrap">
+  <div class="between">
+    <h1 class="logo" style="font-size:clamp(40px,5vw,64px)">Patata!</h1>
+    <span class="eyebrow">Party mode · host screen</span>
+  </div>
+
+  <section class="card" id="starting">
+    <h2 class="question">Setting up your party room…</h2>
+    <p class="error" id="startError" role="alert"></p>
+  </section>
+
+  <!-- Lobby -->
+  <div class="stage" id="lobby" hidden>
+    <section class="card">
+      <div class="eyebrow">Join on your phone</div>
+      <p class="joinurl" id="joinUrl"></p>
+      <div class="eyebrow">Room code</div>
+      <div class="code" id="code"></div>
+      <div class="eyebrow">Topics</div>
+      <div class="topics" id="topics"></div>
+      <div class="row">
+        <button type="button" id="startBtn">Start the game</button>
+        <p class="error" id="lobbyError" role="alert"></p>
+      </div>
+    </section>
+    <section class="card teal">
+      <div class="between"><div class="eyebrow">Players</div><span class="muted" id="count">0</span></div>
+      <ul class="board" id="lobbyPlayers"></ul>
+      <p class="muted" id="emptyNote">Nobody's here yet. Players open the link above and type the code.</p>
+    </section>
+  </div>
+
+  <!-- Question -->
+  <div class="stage" id="play" hidden>
+    <section class="card">
+      <div class="between">
+        <div class="eyebrow" id="qnum"></div>
+        <div class="clock" id="clock">45</div>
+      </div>
+      <div class="fuse" id="fuse" aria-hidden="true"><div id="fuseBar"></div></div>
+      <h2 class="question" id="question"></h2>
+      <p class="muted" id="unitLine"></p>
+      <div class="row"><button type="button" class="ghost" id="skipBtn">End this question now</button></div>
+    </section>
+    <section class="card teal">
+      <div class="between"><div class="eyebrow">Who's got it</div><span class="muted" id="hitCount"></span></div>
+      <ul class="board" id="playPlayers"></ul>
+    </section>
+  </div>
+
+  <!-- Reveal -->
+  <div class="stage" id="reveal" hidden>
+    <section class="card">
+      <div class="eyebrow" id="rnum"></div>
+      <h2 class="question" id="rQuestion" style="font-size:clamp(22px,3vw,32px)"></h2>
+      <div class="answer" id="rAnswer"></div>
+      <p class="fact" id="rFact"></p>
+      <div class="row"><button type="button" id="nextBtn">Next question</button></div>
+    </section>
+    <section class="card teal">
+      <div class="eyebrow">Scores</div>
+      <ul class="board" id="revealPlayers"></ul>
+    </section>
+  </div>
+
+  <!-- Final -->
+  <section class="card" id="final" hidden>
+    <div class="eyebrow">Game over</div>
+    <div class="podium" id="podium"></div>
+    <ul class="board" id="finalPlayers"></ul>
+    <div class="row" style="justify-content:center">
+      <button type="button" id="againBtn">Play again with the same people</button>
+      <button type="button" class="ghost" id="lobbyBtn">Back to the lobby</button>
+    </div>
+  </section>
+
+  <p class="note" id="status"></p>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 2 });
+const yearFmt = new Intl.NumberFormat("en-GB", { useGrouping: false });
+const show = (n, q) => (q && q.isYear ? yearFmt : fmt).format(n);
+const SAVE_KEY = "closeEnoughHost";
+let host = null, es = null, view = null, clockTimer = null, offset = 0;
+
+function save(s) { try { s ? sessionStorage.setItem(SAVE_KEY, JSON.stringify(s)) : sessionStorage.removeItem(SAVE_KEY); } catch (e) {} }
+function load() { try { return JSON.parse(sessionStorage.getItem(SAVE_KEY) || "null"); } catch (e) { return null; } }
+
+function showOnly(id) { for (const s of ["starting", "lobby", "play", "reveal", "final"]) $(s).hidden = s !== id; }
+
+async function post(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "Something went wrong. Try again.");
+  return data;
+}
+const act = (type, extra) => post(`/api/rooms/${host.code}/action`, { token: host.hostToken, type, ...extra });
+
+function playerRows(list, players, fn) {
+  list.innerHTML = "";
+  players.forEach((p, i) => {
+    const li = document.createElement("li");
+    const pos = document.createElement("span"); pos.className = "pos"; pos.textContent = i + 1;
+    const icon = document.createElement("span"); icon.className = "icon"; icon.setAttribute("aria-hidden", "true"); icon.textContent = p.icon || "";
+    const name = document.createElement("span"); name.className = "name"; name.textContent = p.name + (p.connected ? "" : " (offline)");
+    li.append(pos, icon, name);
+    const extra = fn(p);
+    if (extra) li.append(extra);
+    list.appendChild(li);
+  });
+}
+const span = (cls, text) => { const s = document.createElement("span"); s.className = cls; s.textContent = text; return s; };
+
+function tick() {
+  if (!view || view.phase !== "question") return;
+  const msLeft = Math.max(0, view.endsAt - (Date.now() + offset));
+  const s = Math.ceil(msLeft / 1000), low = s <= 10;
+  $("clock").textContent = s;
+  $("clock").classList.toggle("low", low);
+  $("fuse").classList.toggle("low", low);
+  $("fuseBar").style.transform = `scaleX(${msLeft / (view.seconds * 1000)})`;
+}
+
+function render(v) {
+  view = v;
+  offset = v.now - Date.now();
+  const q = v.question;
+  clearInterval(clockTimer);
+
+  if (v.phase === "lobby") {
+    showOnly("lobby");
+    const url = `${location.origin}/?code=${v.code}`;
+    $("joinUrl").textContent = location.host;
+    $("code").textContent = v.code;
+    $("topics").innerHTML = "";
+    v.groups.forEach((g) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "topic"; b.textContent = g;
+      b.setAttribute("aria-pressed", v.topics.includes(g) ? "true" : "false");
+      b.addEventListener("click", () => {
+        const next = v.topics.includes(g) ? v.topics.filter((x) => x !== g) : [...v.topics, g];
+        act("topics", { topics: next }).catch((e) => { $("lobbyError").textContent = e.message; });
+      });
+      $("topics").appendChild(b);
+    });
+    $("count").textContent = v.players.length;
+    $("emptyNote").hidden = v.players.length > 0;
+    playerRows($("lobbyPlayers"), v.players, () => null);
+    return;
+  }
+
+  if (v.phase === "question") {
+    showOnly("play");
+    $("qnum").textContent = `Question ${q.number} of ${q.total} · ${q.topic}`;
+    $("question").textContent = q.text;
+    $("unitLine").textContent = q.isYear ? "Answer with a year. Only the exact year counts." : `Answer in ${q.unit}.`;
+    const hits = v.players.filter((p) => p.hit).length;
+    $("hitCount").textContent = `${hits} of ${v.players.length}`;
+    const sorted = v.players.slice().sort((a, b) => (b.hit - a.hit) || ((a.hitSeconds ?? 99) - (b.hitSeconds ?? 99)) || a.name.localeCompare(b.name));
+    playerRows($("playPlayers"), sorted, (p) => span("status " + (p.hit ? "hit" : ""), p.hit ? `Got it in ${p.hitSeconds}s` : p.tries ? `${p.tries} ${p.tries === 1 ? "try" : "tries"}` : "Thinking…"));
+    clockTimer = setInterval(tick, 100); tick();
+    return;
+  }
+
+  if (v.phase === "reveal") {
+    showOnly("reveal");
+    $("rnum").textContent = `Question ${q.number} of ${q.total} · ${q.topic}`;
+    $("rQuestion").textContent = q.text;
+    $("rAnswer").textContent = show(q.answer, q) + (q.isYear ? "" : " " + q.unit);
+    $("rFact").innerHTML = "<b>Fun fact:</b> ";
+    $("rFact").append(q.fact);
+    $("nextBtn").textContent = q.number === q.total ? "See the winners" : "Next question";
+    playerRows($("revealPlayers"), v.players, (p) => {
+      const wrap = document.createElement("span"); wrap.className = "row"; wrap.style.gap = "10px";
+      wrap.append(span("gain", p.roundPoints ? `+${p.roundPoints}` : ""), span("pts", p.score));
+      return wrap;
+    });
+    return;
+  }
+
+  if (v.phase === "final") {
+    showOnly("final");
+    const top = v.players.slice(0, 3);
+    const order = [1, 0, 2].filter((i) => top[i]);
+    $("podium").innerHTML = "";
+    order.forEach((i) => {
+      const d = document.createElement("div"); d.className = "p" + (i + 1);
+      const b = document.createElement("b"); b.textContent = "#" + (i + 1);
+      const ic = span("", top[i].icon || ""); ic.style.fontSize = "48px"; ic.style.lineHeight = "1";
+      d.append(ic, b, span("", top[i].name), span("muted", top[i].score + " pts"));
+      $("podium").appendChild(d);
+    });
+    playerRows($("finalPlayers"), v.players, (p) => span("pts", p.score));
+  }
+}
+
+function connect() {
+  if (es) es.close();
+  es = new EventSource(`/api/rooms/${host.code}/events?token=${host.hostToken}`);
+  es.onmessage = (e) => { $("status").textContent = ""; render(JSON.parse(e.data)); };
+  es.onerror = async () => {
+    $("status").textContent = "Reconnecting…";
+    const r = await fetch(`/api/rooms/${host.code}/events?token=${host.hostToken}`, { method: "HEAD" }).catch(() => null);
+    if (r && (r.status === 404 || r.status === 403)) { es.close(); save(null); createRoom(); }
+  };
+}
+
+async function createRoom() {
+  showOnly("starting");
+  try {
+    host = await post("/api/rooms");
+    save(host);
+    connect();
+  } catch (e) { $("startError").textContent = "Couldn't create a room. Refresh the page to try again."; }
+}
+
+$("startBtn").addEventListener("click", () => { $("lobbyError").textContent = ""; act("start").catch((e) => { $("lobbyError").textContent = e.message; }); });
+$("skipBtn").addEventListener("click", () => act("skip").catch(() => {}));
+$("nextBtn").addEventListener("click", () => act("next").catch(() => {}));
+$("againBtn").addEventListener("click", () => act("start").catch(() => {}));
+$("lobbyBtn").addEventListener("click", () => act("lobby").catch(() => {}));
+
+// Keep the server awake while this screen is open (free hosting sleeps after 15 idle minutes).
+setInterval(() => { fetch("/ping", { cache: "no-store" }).catch(() => {}); }, 4 * 60 * 1000);
+
+host = load();
+if (host) connect(); else createRoom();
+</script>
+</body>
+</html>

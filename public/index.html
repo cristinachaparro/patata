@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patata!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Archivo:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="between">
+    <h1 class="logo">Patata!</h1>
+    <span class="me-chip" id="meLine"></span>
+  </div>
+
+  <!-- Join -->
+  <section class="card" id="join">
+    <div class="eyebrow">Join a party</div>
+    <h2 class="question">Type the code on the big screen.</h2>
+    <form id="joinForm" class="stack" novalidate style="display:flex;flex-direction:column;gap:12px">
+      <label class="field" for="code"><input id="code" class="plain" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="Room code" style="font-family:var(--display);letter-spacing:0.2em;text-transform:uppercase"></label>
+      <label class="field" for="name"><input id="name" class="plain" maxlength="20" autocomplete="nickname" placeholder="Your name"></label>
+      <fieldset class="icon-grid" id="icons"><legend>Pick your icon</legend></fieldset>
+      <button type="submit" id="joinBtn">Join</button>
+      <p class="error" id="joinError" role="alert"></p>
+    </form>
+    <div class="row" style="justify-content:center;gap:16px">
+      <a class="button ghost" href="/host">Host a party</a>
+      <a class="button ghost" href="/solo">Play solo</a>
+    </div>
+  </section>
+
+  <!-- Lobby -->
+  <section class="card" id="lobby" hidden>
+    <div class="eyebrow">You're in</div>
+    <div class="row" style="gap:14px"><span id="lobbyIcon" style="font-size:56px;line-height:1"></span><h2 class="question" style="flex:1;min-width:0">Waiting for the host to start…</h2></div>
+    <p class="muted" id="lobbyCount"></p>
+    <ul class="board" id="lobbyList"></ul>
+  </section>
+
+  <!-- Question -->
+  <section class="card" id="play" hidden>
+    <div class="between">
+      <div class="eyebrow" id="qnum"></div>
+      <div class="clock" id="clock">45</div>
+    </div>
+    <div class="fuse" id="fuse" aria-hidden="true"><div id="fuseBar"></div></div>
+    <h2 class="question" id="question"></h2>
+    <form id="guessForm" novalidate class="row" hidden>
+      <label class="field" for="guess">
+        <input id="guess" inputmode="decimal" autocomplete="off" placeholder="Your guess" aria-label="Your guess">
+        <span class="unit" id="unit"></span>
+      </label>
+      <button type="submit" id="guessBtn">Guess</button>
+    </form>
+    <p class="error" id="guessError" role="alert"></p>
+    <div aria-live="polite" style="display:flex;flex-direction:column;gap:6px">
+      <p class="call-word" id="callWord"></p>
+      <p class="muted" id="callHint"></p>
+    </div>
+    <ul class="history" id="history" aria-label="Your guesses"></ul>
+  </section>
+
+  <!-- Reveal -->
+  <section class="card" id="reveal" hidden>
+    <div class="eyebrow" id="rnum"></div>
+    <p class="call-word" id="rVerdict"></p>
+    <div class="between">
+      <div><div class="eyebrow">Answer</div><div class="big" id="rAnswer" style="font-size:40px"></div></div>
+      <div style="text-align:right"><div class="eyebrow">You got</div><div class="big" id="rPoints" style="font-size:40px"></div></div>
+    </div>
+    <p class="fact" id="rFact"></p>
+    <p style="font-weight:700" id="rRank"></p>
+    <p class="muted">Look at the big screen. The host moves on to the next question.</p>
+  </section>
+
+  <!-- Final -->
+  <section class="card" id="final" hidden>
+    <div class="eyebrow">Game over</div>
+    <div class="big" id="fRank"></div>
+    <p style="font-weight:700" id="fLine"></p>
+    <ul class="board" id="fBoard"></ul>
+  </section>
+
+  <p class="note" id="status"></p>
+</div>
+
+<script src="/icons.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 2 });
+const yearFmt = new Intl.NumberFormat("en-GB", { useGrouping: false });
+const show = (n, q) => (q && q.isYear ? yearFmt : fmt).format(n);
+const SAVE_KEY = "closeEnoughParty";
+let session = null, es = null, view = null, clockTimer = null, offset = 0, lastGuessCount = 0, lastKey = "";
+
+function save(s) { try { s ? localStorage.setItem(SAVE_KEY, JSON.stringify(s)) : localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+function load() { try { return JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch (e) { return null; } }
+
+function showOnly(id) {
+  for (const s of ["join", "lobby", "play", "reveal", "final"]) $(s).hidden = s !== id;
+}
+
+async function post(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "Something went wrong. Try again.");
+  return data;
+}
+
+function connect() {
+  if (es) es.close();
+  es = new EventSource(`/api/rooms/${session.code}/events?token=${session.token}`);
+  es.onmessage = (e) => { $("status").textContent = ""; render(JSON.parse(e.data)); };
+  es.onerror = async () => {
+    $("status").textContent = "Reconnecting…";
+    const r = await fetch(`/api/rooms/${session.code}/events?token=${session.token}`, { method: "HEAD" }).catch(() => null);
+    if (r && (r.status === 404 || r.status === 403)) { es.close(); save(null); session = null; showOnly("join"); $("status").textContent = ""; $("joinError").textContent = "That game has ended. Join a new one."; }
+  };
+}
+
+function tick() {
+  if (!view || view.phase !== "question") return;
+  const msLeft = Math.max(0, view.endsAt - (Date.now() + offset));
+  const s = Math.ceil(msLeft / 1000), low = s <= 10;
+  $("clock").textContent = s;
+  $("clock").classList.toggle("low", low);
+  $("fuse").classList.toggle("low", low);
+  $("fuseBar").style.transform = `scaleX(${msLeft / (view.seconds * 1000)})`;
+}
+
+function boardHtml(players, myName) {
+  return players.map((p, i) => `<li class="${p.name === myName ? "me" : ""}"><span class="pos">${i + 1}</span><span class="icon" aria-hidden="true"></span><span class="name"></span><span class="pts">${p.score}</span></li>`).join("");
+}
+function fillNames(listEl, players) {
+  [...listEl.querySelectorAll(".name")].forEach((el, i) => { el.textContent = players[i].name; });
+  [...listEl.querySelectorAll(".icon")].forEach((el, i) => { el.textContent = players[i].icon || ""; });
+}
+
+function render(v) {
+  view = v;
+  offset = v.now - Date.now();
+  $("meLine").innerHTML = "<b aria-hidden=\"true\"></b><span></span>";
+  $("meLine").firstChild.textContent = v.me.icon || "";
+  $("meLine").lastChild.textContent = `${v.me.name} · ${v.me.score} pts`;
+  $("lobbyIcon").textContent = v.me.icon || "";
+  const q = v.question;
+
+  if (v.phase === "lobby") {
+    showOnly("lobby");
+    $("lobbyCount").textContent = v.playerCount === 1 ? "You're the first one here." : `${v.playerCount} players in the room.`;
+    $("lobbyList").innerHTML = boardHtml(v.players || [], v.me.name).replace(/<span class="pts">\d+<\/span>/g, "");
+    fillNames($("lobbyList"), v.players || []);
+    return;
+  }
+
+  if (v.phase === "question") {
+    showOnly("play");
+    const key = `${q.number}-${q.text}`;
+    const fresh = key !== lastKey;
+    lastKey = key;
+    $("qnum").textContent = `Question ${q.number} of ${q.total} · ${q.topic}`;
+    $("question").textContent = q.text;
+    $("unit").textContent = q.isYear ? "" : q.unit;
+    $("guess").placeholder = q.isYear ? "Year" : "Guess";
+    $("guessForm").hidden = v.me.hit;
+    const gs = v.me.guesses;
+    $("history").innerHTML = "";
+    gs.filter((g) => g.dir !== "hit").forEach((g) => {
+      const li = document.createElement("li");
+      li.className = g.dir;
+      li.textContent = show(g.value, q) + (g.dir === "more" ? " ↑" : " ↓");
+      $("history").appendChild(li);
+    });
+    const word = $("callWord");
+    if (fresh) { word.textContent = ""; word.className = "call-word"; $("callHint").textContent = "Type a number and press Enter."; $("guessError").textContent = ""; $("guess").value = ""; }
+    if (v.me.hit) {
+      word.textContent = "Got it!"; word.className = "call-word more";
+      $("callHint").textContent = `+${v.me.roundPoints} points. Waiting for the others…`;
+    } else if (gs.length && gs.length !== lastGuessCount) {
+      const last = gs[gs.length - 1];
+      word.textContent = last.dir === "more" ? "More!" : "Less!";
+      word.className = "call-word " + last.dir;
+      void word.offsetWidth; word.classList.add("pop");
+      const words = q.isYear ? ["Later than", "Earlier than"] : ["Higher than", "Lower than"];
+      $("callHint").textContent = `${last.dir === "more" ? words[0] : words[1]} ${show(last.value, q)}.`;
+    }
+    lastGuessCount = gs.length;
+    if (fresh && !v.me.hit) { try { $("guess").focus({ preventScroll: true }); } catch (e) {} }
+    clearInterval(clockTimer); clockTimer = setInterval(tick, 100); tick();
+    return;
+  }
+
+  clearInterval(clockTimer);
+  lastGuessCount = 0;
+
+  if (v.phase === "reveal") {
+    showOnly("reveal");
+    $("rnum").textContent = `Question ${q.number} of ${q.total}`;
+    $("rVerdict").textContent = v.me.hit ? "Got it!" : v.me.roundPoints > 0 ? "Time's up! Close-ish." : "Time's up!";
+    $("rVerdict").className = "call-word " + (v.me.hit ? "more" : "less");
+    $("rAnswer").textContent = show(q.answer, q) + (q.isYear ? "" : " " + q.unit);
+    $("rPoints").textContent = "+" + v.me.roundPoints;
+    $("rFact").innerHTML = "<b>Fun fact:</b> ";
+    $("rFact").append(q.fact);
+    $("rRank").textContent = `You're number ${v.me.rank} with ${v.me.score} points.`;
+    return;
+  }
+
+  if (v.phase === "final") {
+    showOnly("final");
+    $("fRank").textContent = `#${v.me.rank}`;
+    $("fLine").textContent = v.me.rank === 1 ? `You won with ${v.me.score} points!` : `${v.me.score} points. Well played.`;
+    $("fBoard").innerHTML = boardHtml(v.players || [], v.me.name);
+    fillNames($("fBoard"), v.players || []);
+  }
+}
+
+$("joinForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const code = $("code").value.trim().toUpperCase();
+  const name = $("name").value.trim();
+  if (code.length !== 4) { $("joinError").textContent = "The room code has 4 letters."; return; }
+  if (!name) { $("joinError").textContent = "Type your name first."; return; }
+  $("joinBtn").disabled = true;
+  try {
+    const picked = document.querySelector("input[name=icon]:checked");
+    const { token } = await post(`/api/rooms/${code}/join`, { name, icon: picked ? picked.value : "" });
+    session = { code, token, name };
+    save(session);
+    connect();
+  } catch (err) { $("joinError").textContent = err.message; }
+  $("joinBtn").disabled = false;
+});
+
+$("guessForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const raw = $("guess").value.replace(/[\s,_']/g, "");
+  if (!/^\d+(\.\d+)?$/.test(raw)) { $("guessError").textContent = "Type a number first, like 250 or 1605."; return; }
+  $("guess").value = "";
+  try { await post(`/api/rooms/${session.code}/action`, { token: session.token, type: "guess", value: Number(raw) }); }
+  catch (err) { $("guessError").textContent = err.message; }
+  try { $("guess").focus({ preventScroll: true }); } catch (e) {}
+});
+$("guess").addEventListener("input", () => { $("guessError").textContent = ""; });
+for (const id of ["code", "name"]) $(id).addEventListener("input", () => { $("joinError").textContent = ""; });
+
+(window.ICONS || []).forEach((icon, i) => {
+  const label = document.createElement("label");
+  label.className = "icon-pick";
+  const input = document.createElement("input");
+  input.type = "radio"; input.name = "icon"; input.value = icon; input.id = "icon" + i;
+  input.setAttribute("aria-label", "Icon " + (i + 1));
+  const span = document.createElement("span"); span.textContent = icon;
+  label.append(input, span);
+  $("icons").appendChild(label);
+});
+const iconInputs = document.querySelectorAll("input[name=icon]");
+if (iconInputs.length) iconInputs[Math.floor(Math.random() * iconInputs.length)].checked = true;
+
+const params = new URLSearchParams(location.search);
+const saved = load();
+if (params.get("code")) $("code").value = params.get("code").toUpperCase().slice(0, 4);
+if (saved && (!params.get("code") || params.get("code").toUpperCase() === saved.code)) { session = saved; connect(); }
+else if (params.get("code")) $("name").focus();
+</script>
+</body>
+</html>

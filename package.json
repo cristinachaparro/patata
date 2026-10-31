@@ -1,0 +1,13 @@
+{
+  "name": "numbers-game",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A silly numbers-guessing party game. Solo and party mode (host screen + phones).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

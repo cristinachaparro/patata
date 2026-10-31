@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patata! · Solo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Archivo:wght@400;600;800&display=swap">
+<style>
+[hidden] { display: none !important; }
+/* Layout: one centered game card, like a quiz-show podium; the burning fuse and the More/Less call are the hero moments */
+:root {
+  --bg: #FFF6E5; --ray: #FFEFD2; --card: #ffffff; --ink: #2B2350; --muted: #6B5F8F; --line: #2B2350;
+  --hot: #E8452C; --warm: #F2B705; --cold: #2A9D8F; --accent: #D63A22; --accent-ink: #ffffff;
+  --up: #1E7468; --down: #C03A21; --danger: #C03A21; --yellow: #F2B705; --teal: #2A9D8F; --soft: #F3EBDD;
+  --display: "Bungee", "Arial Black", Impact, sans-serif;
+  --body: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 40px;
+}
+.wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.logo { font-family: var(--display); font-size: 28px; letter-spacing: 0.5px; margin: 0; line-height: 1; }
+.logo span { color: var(--accent); }
+.stats { display: flex; gap: 14px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stats b { color: var(--ink); font-weight: 800; }
+.card { background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+.eyebrow { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.question { font-size: 24px; font-weight: 800; line-height: 1.25; margin: 0; text-wrap: balance; }
+.progress { display: flex; gap: 4px; }
+.progress i { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.progress i.done { background: var(--accent); }
+.progress i.now { background: var(--ink); }
+.toprow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.clock { font-family: var(--display); font-size: 28px; line-height: 1; font-variant-numeric: tabular-nums; }
+.clock.low { color: var(--hot); }
+.fuse { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.fuse div { height: 100%; width: 100%; background: var(--warm); transform-origin: left; }
+.fuse.low div { background: var(--hot); animation: flicker 0.5s steps(2) infinite; }
+@keyframes flicker { 50% { opacity: 0.55; } }
+form { display: flex; gap: 10px; flex-wrap: wrap; }
+.field { flex: 1 1 200px; display: flex; align-items: center; border: 2px solid var(--line); border-radius: 14px; background: var(--bg); padding: 0 14px; min-width: 0; }
+.field:focus-within { border-color: var(--ink); }
+.field input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-family: var(--display); font-size: 26px; padding: 12px 0; outline: none; font-variant-numeric: tabular-nums; }
+.unit { color: var(--muted); font-weight: 600; font-size: 14px; white-space: nowrap; padding-left: 8px; }
+button { font-family: var(--body); font-weight: 800; font-size: 16px; border: 0; border-radius: 14px; padding: 14px 22px; cursor: pointer; background: var(--accent); color: var(--accent-ink); }
+button:disabled { opacity: 0.5; cursor: default; }
+button:focus-visible, .field input:focus-visible { outline: 3px solid var(--cold); outline-offset: 2px; }
+.error { color: var(--danger); font-size: 13px; margin: -8px 0 0; min-height: 1em; }
+.call { display: flex; align-items: center; gap: 14px; min-height: 44px; }
+.call-word { font-family: var(--display); font-size: 36px; line-height: 1; margin: 0; }
+.call-word.more { color: var(--up); }
+.call-word.less { color: var(--down); }
+.call-word.pop { animation: pop 260ms ease-out; }
+@keyframes pop { from { transform: scale(1.35); } to { transform: scale(1); } }
+.call-hint { color: var(--muted); font-size: 14px; margin: 0; }
+.history { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.history li { font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 2px solid var(--line); font-variant-numeric: tabular-nums; }
+.history li.more { color: var(--up); }
+.history li.less { color: var(--down); }
+.reveal { display: flex; flex-direction: column; gap: 14px; }
+.verdict { font-family: var(--display); font-size: 30px; line-height: 1; margin: 0; }
+.nums { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.nums div { border: 2px solid var(--line); border-radius: 12px; padding: 10px; min-width: 0; }
+.nums small { display: block; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.nums strong { font-size: 18px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.fact { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--bg); font-size: 15px; }
+.fact b { font-weight: 800; }
+.topics-wrap { display: flex; flex-direction: column; gap: 8px; }
+.topics { display: flex; flex-wrap: wrap; gap: 8px; }
+.topic { background: transparent; color: var(--muted); border: 2px solid var(--line); border-radius: 999px; padding: 8px 16px; font-size: 15px; }
+.topic[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
+.topic[aria-pressed="true"]::before { content: "\2713  "; }
+.rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.final { text-align: center; align-items: center; }
+.big { font-family: var(--display); font-size: 64px; line-height: 1; margin: 0; font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: var(--muted); text-align: center; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .fuse.low div, .call-word.pop { animation: none; } }
+@media (max-width: 420px) { .question { font-size: 21px; } .nums strong { font-size: 15px; } .call-word { font-size: 30px; } }
+
+body { background-image: repeating-conic-gradient(from 0deg at 50% 115%, var(--ray) 0deg 6deg, var(--bg) 6deg 12deg); background-attachment: fixed; min-height: 100vh; }
+.logo { font-family: "Bungee Shade", "Bungee", Impact, sans-serif; font-weight: 400; font-size: 34px; color: var(--accent); }
+.card { border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--yellow); }
+.field { border: 3px solid var(--ink); }
+button { border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); background: #E8452C; color: #fff; }
+.fuse { border: 2px solid var(--ink); height: 14px; background: var(--soft); }
+.fuse div { background: repeating-linear-gradient(-45deg, var(--yellow) 0 10px, #E8452C 10px 20px); }
+.call-word { text-transform: uppercase; font-size: 40px; }
+.call-word.more, .call-word.less { color: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 8px 16px; display: inline-block; }
+.call-word.more { background: var(--teal); box-shadow: 4px 4px 0 #E8452C; }
+.call-word.less { background: #E8452C; box-shadow: 4px 4px 0 var(--yellow); }
+.topic { background: var(--card); color: var(--ink); border: 2px solid var(--ink); box-shadow: none; }
+.topic[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.history li { border-color: var(--ink); background: var(--card); }
+.fact { background: var(--soft); border: 2px dashed var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1 class="logo">Patata!</h1>
+    <div class="stats"><span>Score <b id="score">0</b></span><span>Best <b id="best">0</b></span></div>
+  </header>
+
+  <section class="card" id="intro">
+    <div class="eyebrow">How to play</div>
+    <h2 class="question" style="margin:0">Guess the number before the fuse burns out.</h2>
+    <ul class="rules">
+      <li>You get 45 seconds per question, and you can guess as many times as you like.</li>
+      <li>After each guess you'll hear <b style="color:var(--up)">More!</b> or <b style="color:var(--down)">Less!</b></li>
+      <li>Land within 2% of the answer to score 100 points, plus 3 for every second left. For years, only the exact year counts.</li>
+      <li>Out of time? Your closest guess still earns points if it was within 50%.</li>
+    </ul>
+    <div class="topics-wrap">
+      <div class="eyebrow">Topics</div>
+      <div class="topics" id="topics"></div>
+      <p class="error" id="topicError" role="alert" style="margin:0"></p>
+    </div>
+    <button type="button" id="startBtn">Light the fuse</button>
+  </section>
+
+  <section class="card" id="play" hidden>
+    <div class="progress" id="progress" aria-hidden="true"></div>
+    <div class="toprow">
+      <div class="eyebrow" id="qnum">Question 1 of 10 · Human body</div>
+      <div class="clock" id="clock" aria-live="off">45</div>
+    </div>
+    <div class="fuse" id="fuse" aria-hidden="true"><div id="fuseBar"></div></div>
+    <h2 class="question" id="question">How many bones are in the adult human body?</h2>
+    <form id="guessForm" novalidate>
+      <label class="field" for="guess">
+        <input id="guess" inputmode="decimal" autocomplete="off" placeholder="Your guess" aria-label="Your guess">
+        <span class="unit" id="unit">bones</span>
+      </label>
+      <button type="submit" id="lockBtn">Guess</button>
+    </form>
+    <p class="error" id="error" role="alert"></p>
+    <div class="call" aria-live="polite">
+      <p class="call-word" id="callWord"></p>
+      <p class="call-hint" id="callHint">Type a number and press Enter.</p>
+    </div>
+    <ul class="history" id="history" aria-label="Your guesses"></ul>
+
+    <div class="reveal" id="reveal" hidden>
+      <p class="verdict" id="verdict">Hot!</p>
+      <div class="nums">
+        <div><small>Closest guess</small><strong id="yours">0</strong></div>
+        <div><small>Answer</small><strong id="answer">0</strong></div>
+        <div><small>Points</small><strong id="points">0</strong></div>
+      </div>
+      <p class="fact" id="fact"></p>
+      <button type="button" id="nextBtn">Next question</button>
+    </div>
+  </section>
+
+  <section class="card final" id="end" hidden>
+    <div class="eyebrow">Game over</div>
+    <p class="big" id="finalScore">0</p>
+    <p id="finalLine" style="margin:0;font-weight:600"></p>
+    <button type="button" id="againBtn">Play again</button>
+  </section>
+
+  <p class="note">Prototype. 10 random questions per game, 45 seconds each. <a href="/" style="color:inherit">Back to party mode</a></p>
+</div>
+
+<script src="/questions.js"></script>
+<script>
+const QUESTIONS = window.QUESTIONS;
+const MAX_ROUNDS = 10, SECONDS = 45, HIT = 0.02, BONUS = 3;
+const $ = (id) => document.getElementById(id);
+const fmt = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 2 });
+let deck = [], round = 0, score = 0, best = 0, guesses = [], timer = null, endsAt = 0, over = true;
+
+try { best = Number(localStorage.getItem("closeEnoughBest")) || 0; } catch (e) {}
+$("best").textContent = best;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function parseGuess(raw) {
+  const clean = raw.replace(/[\s,_']/g, "");
+  if (!/^\d+(\.\d+)?$/.test(clean)) return NaN;
+  return Number(clean);
+}
+
+const isYear = (item) => item.unit === "year";
+const errOf = (g, item) => isYear(item) ? Math.abs(g - item.a) / 40 : Math.abs(g - item.a) / item.a;
+const isHit = (g, item) => g === item.a || (!isYear(item) && errOf(g, item) <= HIT);
+const yearFmt = new Intl.NumberFormat("en-GB", { useGrouping: false });
+const show = (n, item) => (isYear(item) ? yearFmt : fmt).format(n);
+const GROUPS = window.GROUPS;
+const groupOf = (item) => item.t;
+let ROUNDS = 10;
+
+function verdictFor(err, hit) {
+  if (hit && err === 0) return "Spot on!";
+  if (hit) return "Scorching!";
+  if (err <= 0.1) return "So close!";
+  if (err <= 0.25) return "Warm";
+  if (err <= 0.5) return "Chilly";
+  return "Frozen";
+}
+
+function focusGuess() { try { $("guess").focus({ preventScroll: true }); } catch (e) {} }
+
+function renderProgress() {
+  $("progress").innerHTML = Array.from({ length: ROUNDS }, (_, i) =>
+    `<i class="${i < round ? "done" : i === round ? "now" : ""}"></i>`).join("");
+}
+
+function secondsLeft() { return Math.max(0, Math.ceil((endsAt - Date.now()) / 1000)); }
+
+function tick() {
+  const msLeft = Math.max(0, endsAt - Date.now());
+  const s = Math.ceil(msLeft / 1000);
+  const low = s <= 10;
+  $("clock").textContent = s;
+  $("clock").classList.toggle("low", low);
+  $("fuse").classList.toggle("low", low);
+  $("fuseBar").style.transform = `scaleX(${msLeft / (SECONDS * 1000)})`;
+  if (msLeft <= 0) finishQuestion(false);
+}
+
+function showQuestion() {
+  const item = deck[round];
+  guesses = []; over = false;
+  $("qnum").textContent = `Question ${round + 1} of ${ROUNDS} · ${item.t}`;
+  $("question").textContent = item.q;
+  $("unit").textContent = item.unit;
+  $("guess").value = "";
+  $("guess").disabled = false;
+  $("lockBtn").disabled = false;
+  $("error").textContent = "";
+  $("callWord").textContent = "";
+  $("callWord").className = "call-word";
+  $("callHint").textContent = "Type a number and press Enter.";
+  $("history").innerHTML = "";
+  $("reveal").hidden = true;
+  renderProgress();
+  endsAt = Date.now() + SECONDS * 1000;
+  clearInterval(timer);
+  timer = setInterval(tick, 100);
+  tick();
+  focusGuess();
+}
+
+function finishQuestion(hit) {
+  if (over) return;
+  over = true;
+  clearInterval(timer);
+  const item = deck[round];
+  const left = secondsLeft();
+  let closest = null;
+  for (const g of guesses) if (closest === null || errOf(g, item) < errOf(closest, item)) closest = g;
+  const err = closest === null ? 1 : errOf(closest, item);
+  let pts;
+  if (hit) pts = 100 + left * BONUS;
+  else pts = Math.round(100 * Math.max(0, 1 - err * 2));
+  score += pts;
+  $("score").textContent = score;
+  $("verdict").textContent = closest === null ? "Out of time!" : (hit ? verdictFor(err, true) : "Time's up! " + verdictFor(err, false));
+  $("yours").textContent = closest === null ? "None" : show(closest, item);
+  $("answer").textContent = isYear(item) ? show(item.a, item) : show(item.a, item) + " " + item.unit;
+  $("points").textContent = "+" + pts + (hit && left ? ` (${left}s bonus)` : "");
+  $("fact").innerHTML = "<b>Fun fact:</b> " + item.fact;
+  $("guess").disabled = true;
+  $("lockBtn").disabled = true;
+  $("nextBtn").textContent = round === ROUNDS - 1 ? "See my score" : "Next question";
+  $("reveal").hidden = false;
+  $("nextBtn").focus({ preventScroll: true });
+}
+
+function start() {
+  const chosen = [...document.querySelectorAll(".topic[aria-pressed='true']")].map((b) => b.dataset.group);
+  if (!chosen.length) { $("topicError").textContent = "Pick at least one topic."; return; }
+  const pool = QUESTIONS.filter((item) => chosen.includes(groupOf(item)));
+  ROUNDS = Math.min(MAX_ROUNDS, pool.length);
+  deck = shuffle(pool).slice(0, ROUNDS);
+  round = 0; score = 0;
+  $("score").textContent = 0;
+  $("intro").hidden = true;
+  $("end").hidden = true;
+  $("play").hidden = false;
+  showQuestion();
+}
+
+$("guessForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (over) return;
+  const guess = parseGuess($("guess").value);
+  if (!isFinite(guess)) { $("error").textContent = "Type a number first, like 250 or 1,605."; return; }
+  const item = deck[round];
+  guesses.push(guess);
+  $("guess").value = "";
+  if (isHit(guess, item)) {
+    $("callWord").textContent = "Got it!";
+    $("callWord").className = "call-word more";
+    $("callHint").textContent = "";
+    finishQuestion(true);
+    return;
+  }
+  const dir = guess < item.a ? "more" : "less";
+  const word = $("callWord");
+  word.textContent = dir === "more" ? "More!" : "Less!";
+  word.className = "call-word " + dir;
+  void word.offsetWidth;
+  word.classList.add("pop");
+  const later = isYear(item) ? ["Later than", "Earlier than"] : ["Higher than", "Lower than"];
+  $("callHint").textContent = `${dir === "more" ? later[0] : later[1]} ${show(guess, item)}.`;
+  const li = document.createElement("li");
+  li.className = dir;
+  li.textContent = show(guess, item) + (dir === "more" ? " ↑" : " ↓");
+  $("history").appendChild(li);
+  focusGuess();
+});
+
+$("guess").addEventListener("input", () => { $("error").textContent = ""; });
+
+$("nextBtn").addEventListener("click", () => {
+  round++;
+  if (round < ROUNDS) { showQuestion(); return; }
+  if (score > best) { best = score; try { localStorage.setItem("closeEnoughBest", String(best)); } catch (e) {} }
+  $("best").textContent = best;
+  $("play").hidden = true;
+  $("end").hidden = false;
+  $("finalScore").textContent = score;
+  $("finalLine").textContent = score >= 1500 ? "Bomb squad material. You're a walking almanac."
+    : score >= 800 ? "Hot hands. Solid estimating."
+    : `You survived, and you know ${ROUNDS} new facts.`;
+});
+
+GROUPS.forEach((g) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "topic"; b.dataset.group = g; b.textContent = g;
+  b.setAttribute("aria-pressed", "true");
+  $("topics").appendChild(b);
+});
+document.querySelectorAll(".topic").forEach((b) => b.addEventListener("click", () => {
+  b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
+  $("topicError").textContent = "";
+}));
+$("startBtn").addEventListener("click", start);
+$("againBtn").addEventListener("click", () => {
+  $("end").hidden = true;
+  $("intro").hidden = false;
+});
+</script>
+</body>
+</html>
