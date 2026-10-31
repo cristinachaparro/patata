@@ -12,7 +12,7 @@
 .wrap { max-width: 1100px; }
 body.host { padding-left: max(56px, env(safe-area-inset-left, 0px)); padding-right: max(56px, env(safe-area-inset-right, 0px)); padding-block: 56px; }
 body.host::before { content: ""; position: fixed; inset: 8px; border-radius: 30px; border: 24px solid var(--red); box-shadow: inset 0 0 0 3px var(--ink), 0 0 0 3px var(--ink); pointer-events: none; z-index: 0; }
-body.host::after { content: ""; position: fixed; inset: 8px; border-radius: 30px; pointer-events: none; z-index: 0; background: radial-gradient(circle, #FFFDF0 0 2.5px, #FFD84A 3.5px 6.5px, var(--ink) 7px 8.5px, transparent 9px) -6px -6px / 36px 36px; -webkit-mask: linear-gradient(#000 0 0) top/100% 24px no-repeat, linear-gradient(#000 0 0) bottom/100% 24px no-repeat, linear-gradient(#000 0 0) left/24px 100% no-repeat, linear-gradient(#000 0 0) right/24px 100% no-repeat; mask: linear-gradient(#000 0 0) top/100% 24px no-repeat, linear-gradient(#000 0 0) bottom/100% 24px no-repeat, linear-gradient(#000 0 0) left/24px 100% no-repeat, linear-gradient(#000 0 0) right/24px 100% no-repeat; }
+body.host::after { content: ""; position: fixed; inset: 8px; border-radius: 30px; pointer-events: none; z-index: 0; background: radial-gradient(circle, #FFFDF0 0 2.5px, #FFD84A 3.5px 6.5px, var(--ink) 7px 8.5px, transparent 9px) 0 0 / 36px 24px, radial-gradient(circle, #FFFDF0 0 2.5px, #FFD84A 3.5px 6.5px, var(--ink) 7px 8.5px, transparent 9px) 0 100% / 36px 24px, radial-gradient(circle, #FFFDF0 0 2.5px, #FFD84A 3.5px 6.5px, var(--ink) 7px 8.5px, transparent 9px) 0 0 / 24px 36px, radial-gradient(circle, #FFFDF0 0 2.5px, #FFD84A 3.5px 6.5px, var(--ink) 7px 8.5px, transparent 9px) 100% 0 / 24px 36px; background-repeat: space no-repeat, space no-repeat, no-repeat space, no-repeat space; padding: 34px 0; box-sizing: border-box; background-origin: border-box, border-box, content-box, content-box; background-clip: border-box, border-box, content-box, content-box; }
 
 .wrap { position: relative; z-index: 1; }
 .host .clock { font-size: clamp(44px, 6vw, 80px); }
@@ -197,7 +197,7 @@ function render(v) {
     showOnly("play");
     $("qnum").textContent = `Question ${q.number} of ${q.total} · ${q.topic}`;
     $("question").textContent = q.text;
-    $("unitLine").textContent = q.isYear ? "Answer with a year. Only the exact year counts." : `Answer in ${q.unit}.`;
+    $("unitLine").textContent = (q.isYear ? "Answer with a year. Only the exact year counts." : `Answer in ${q.unit}.`) + (q.startHint ? " " + q.startHint : "");
     const hits = v.players.filter((p) => p.hit).length;
     $("hitCount").textContent = `${hits} of ${v.players.length}`;
     const sorted = v.players.slice().sort((a, b) => (b.hit - a.hit) || ((a.hitSeconds ?? 99) - (b.hitSeconds ?? 99)) || a.name.localeCompare(b.name));

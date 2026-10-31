@@ -29,6 +29,15 @@ const groupOf = (q) => q.t;
 const errOf = (g, q) => (isYear(q) ? Math.abs(g - q.a) / 40 : Math.abs(g - q.a) / q.a);
 const isHit = (g, q) => g === q.a || (!isYear(q) && errOf(g, q) <= HIT);
 
+// Big answers (6+ digits) get a starting range, e.g. "between 100,000 and 1,000,000",
+// so players know roughly where to begin. It gives the size of the number, not the number.
+function startHint(q) {
+  if (isYear(q) || q.a < 100000) return null;
+  const low = Math.pow(10, Math.floor(Math.log10(q.a)));
+  const fmt = (n) => n.toLocaleString("en-GB");
+  return `Hint: it's between ${fmt(low)} and ${fmt(low * 10)}.`;
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -144,7 +153,7 @@ function leaderboard(room) {
 function questionView(room, withAnswer) {
   const q = room.deck[room.index];
   if (!q) return null;
-  const v = { text: q.q, unit: q.unit, topic: q.t, isYear: isYear(q), number: room.index + 1, total: room.deck.length };
+  const v = { text: q.q, unit: q.unit, topic: q.t, isYear: isYear(q), number: room.index + 1, total: room.deck.length, startHint: startHint(q) };
   if (withAnswer) {
     v.answer = q.a;
     v.fact = q.fact;

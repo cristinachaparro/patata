@@ -135,6 +135,7 @@ button { border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); backgro
     </div>
     <div class="fuse" id="fuse" aria-hidden="true"><div id="fuseBar"></div></div>
     <h2 class="question" id="question">How many bones are in the adult human body?</h2>
+    <p id="startHint" hidden style="margin:0;align-self:flex-start;font-weight:800;font-size:16px;background:var(--yellow);color:var(--ink);border:2px solid var(--ink);border-radius:10px;padding:4px 10px"></p>
     <form id="guessForm" novalidate>
       <label class="field" for="guess">
         <input id="guess" inputmode="decimal" autocomplete="off" placeholder="Your guess" aria-label="Your guess">
@@ -237,6 +238,10 @@ function showQuestion() {
   guesses = []; over = false;
   $("qnum").textContent = `Question ${round + 1} of ${ROUNDS} · ${item.t}`;
   $("question").textContent = item.q;
+  const big = item.unit !== "year" && item.a >= 100000;
+  const low = big ? Math.pow(10, Math.floor(Math.log10(item.a))) : 0;
+  $("startHint").hidden = !big;
+  $("startHint").textContent = big ? `Hint: it's between ${low.toLocaleString("en-GB")} and ${(low * 10).toLocaleString("en-GB")}.` : "";
   $("unit").textContent = item.unit;
   $("guess").value = "";
   $("guess").disabled = false;

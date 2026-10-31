@@ -48,6 +48,7 @@
     </div>
     <div class="fuse" id="fuse" aria-hidden="true"><div id="fuseBar"></div></div>
     <h2 class="question" id="question"></h2>
+    <p class="start-hint" id="startHint" hidden></p>
     <form id="guessForm" novalidate class="row" hidden>
       <label class="field" for="guess">
         <input id="guess" inputmode="decimal" autocomplete="off" placeholder="Your guess" aria-label="Your guess">
@@ -163,6 +164,8 @@ function render(v) {
     lastKey = key;
     $("qnum").textContent = `Question ${q.number} of ${q.total} · ${q.topic}`;
     $("question").textContent = q.text;
+    $("startHint").hidden = !q.startHint;
+    $("startHint").textContent = q.startHint || "";
     $("unit").textContent = q.isYear ? "" : q.unit;
     $("guess").placeholder = q.isYear ? "Year" : "Guess";
     $("guessForm").hidden = v.me.hit;
