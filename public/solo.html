@@ -291,7 +291,9 @@ function start() {
   if (!chosen.length) { $("topicError").textContent = "Pick at least one topic."; return; }
   const pool = QUESTIONS.filter((item) => chosen.includes(groupOf(item)));
   ROUNDS = Math.min(MAX_ROUNDS, pool.length);
-  deck = shuffle(pool).slice(0, ROUNDS);
+  const years = shuffle(pool).filter(isYear), others = shuffle(pool).filter((q) => !isYear(q));
+  const yearCount = Math.min(years.length, Math.max(2, ROUNDS - others.length));
+  deck = shuffle(others.slice(0, ROUNDS - yearCount).concat(years.slice(0, yearCount)));
   round = 0; score = 0;
   $("score").textContent = 0;
   $("intro").hidden = true;

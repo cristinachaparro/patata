@@ -14,6 +14,7 @@ const HIT = 0.02;
 const BONUS = 3;
 const MAX_ROUNDS = 10;
 const MAX_PLAYERS = 50;
+const MAX_YEAR_QUESTIONS = 2; // dates are fun now and then, not as the main course
 const ROOM_IDLE_MS = 3 * 60 * 60 * 1000;
 // Topics shown to the host, Trivial Pursuit style first.
 const GROUPS = ["Geography", "Entertainment", "History", "Art & Literature", "Sports & Leisure", "Nature", "Animals", "Human body", "Space", "Vehicles"];
@@ -76,11 +77,21 @@ function createRoom() {
   return room;
 }
 
+// Picks the questions for one game: at most MAX_YEAR_QUESTIONS dates,
+// unless the chosen topics don't have enough other questions to fill the game.
+function buildDeck(pool, n) {
+  const mixed = shuffle(pool);
+  const years = mixed.filter(isYear);
+  const others = mixed.filter((q) => !isYear(q));
+  const yearCount = Math.min(years.length, Math.max(MAX_YEAR_QUESTIONS, n - others.length));
+  return shuffle(others.slice(0, n - yearCount).concat(years.slice(0, yearCount)));
+}
+
 function startGame(room) {
   const pool = QUESTIONS.filter((q) => room.topics.includes(groupOf(q)));
   if (!pool.length) return "Pick at least one topic.";
   if (!room.players.size) return "Wait for at least one player to join.";
-  room.deck = shuffle(pool).slice(0, Math.min(MAX_ROUNDS, pool.length));
+  room.deck = buildDeck(pool, Math.min(MAX_ROUNDS, pool.length));
   room.index = -1;
   for (const p of room.players.values()) p.score = 0;
   nextQuestion(room);

@@ -8,24 +8,18 @@ const QUESTIONS = [
   { t: "Animals", q: "How many hearts does an octopus have?", a: 3, unit: "hearts", fact: "Two pump blood through the gills, and one pumps it around the rest of the body. And its blood is blue." },
   { t: "Animals", q: "How long is an elephant pregnancy?", a: 22, unit: "months", fact: "That's the longest pregnancy of any land mammal." },
   { t: "Art & Literature", q: "In what year was the first part of Don Quixote published?", a: 1605, unit: "year", fact: "The second part came out ten years later, in 1615." },
-  { t: "Sports & Leisure", q: "How long is a marathon?", a: 42195, unit: "metres", fact: "The odd 195 metres comes from the route of the 1908 London Olympics." },
+  { t: "Sports & Leisure", q: "How long is a marathon?", a: 42.2, unit: "km", fact: "Exactly 42.195 km. The odd 195 metres comes from the route of the 1908 London Olympics." },
   { t: "Entertainment", q: "How tall is an Oscar statuette?", a: 34, unit: "cm", fact: "It's 34 cm tall and weighs about 3.9 kg." },
   { t: "Geography", q: "How tall is the Eiffel Tower, antenna included?", a: 330, unit: "metres", fact: "In summer heat the iron expands, and the tower can grow by up to 15 cm." },
   { t: "Vehicles", q: "What's the wingspan of an Airbus A380?", a: 80, unit: "metres", fact: "The wings are longer than the plane itself, which is about 73 metres long." },
 
-  { t: "Space", q: "What's the average distance from the Earth to the Moon?", a: 384400, unit: "km", fact: "You could fit all the other planets in the solar system in the gap between us and the Moon." },
   { t: "Space", q: "How many Earth years does Pluto take to go once around the Sun?", a: 248, unit: "years", fact: "Since it was discovered in 1930, Pluto hasn't finished a single orbit. It will in 2178." },
   { t: "Space", q: "How long does sunlight take to reach the Earth?", a: 499, unit: "seconds", fact: "That's about 8 minutes and 20 seconds. When you see the Sun, you're seeing it as it was 8 minutes ago." },
-  { t: "Space", q: "What's the diameter of the Earth at the equator?", a: 12756, unit: "km", fact: "The Earth bulges at the middle. It's about 43 km wider at the equator than from pole to pole." },
-  { t: "Space", q: "How many Earths could fit inside the Sun?", a: 1300000, unit: "Earths", fact: "The Sun holds 99.8% of all the mass in the solar system." },
   { t: "Space", q: "How hot is the surface of the Sun?", a: 5500, unit: "°C", fact: "Its outer atmosphere, the corona, is far hotter: more than a million degrees." },
   { t: "Space", q: "How many Earth days does one day on Venus last?", a: 243, unit: "days", fact: "A day on Venus is longer than its year, which is only 225 Earth days." },
   { t: "Space", q: "How many people have walked on the Moon?", a: 12, unit: "people", fact: "All of them walked there between 1969 and 1972." },
   { t: "Space", q: "In what year was the Voyager 1 probe launched?", a: 1977, unit: "year", fact: "It's the most distant human-made object, more than 24 billion km away, and it's still sending data." },
   { t: "Space", q: "How long does the International Space Station take to circle the Earth?", a: 92, unit: "minutes", fact: "That means the astronauts on board see about 16 sunrises every day." },
-  { t: "Space", q: "What's the average distance from the Earth to the Sun?", a: 150, unit: "million km", fact: "Astronomers use this distance as a unit of measurement, called the astronomical unit." },
-  { t: "Space", q: "How many Earths could fit inside Jupiter?", a: 1300, unit: "Earths", fact: "Jupiter has more than twice the mass of all the other planets put together." },
-  { t: "Space", q: "How old is the universe?", a: 13.8, unit: "billion years", fact: "The Sun and the Earth are much younger: about 4.6 billion years old." },
   { t: "Space", q: "How many Earth years does Neptune take to go once around the Sun?", a: 165, unit: "years", fact: "Neptune was discovered in 1846 and completed its first orbit since then in 2011." },
   { t: "Space", q: "How many minutes did Yuri Gagarin's first spaceflight last?", a: 108, unit: "minutes", fact: "In 1961 he became the first person in space, and he went once around the Earth." },
 
@@ -58,18 +52,15 @@ const QUESTIONS = [
   { t: "Vehicles", q: "In what year did the SEAT 600 go on sale?", a: 1957, unit: "year", fact: "Spain built nearly 800,000 of them. It became the car of the Spanish boom of the 60s." },
   { t: "Vehicles", q: "In what year did people first fly in a hot-air balloon?", a: 1783, unit: "year", fact: "Before that, the Montgolfier brothers tested it with a sheep, a duck and a rooster." },
   { t: "Human body", q: "How much blood does an adult body have?", a: 5, unit: "litres", fact: "Your heart pumps about 7,000 litres of blood around your body every day." },
-  { t: "Human body", q: "How many times does your heart beat in a day?", a: 100000, unit: "beats", fact: "Over a lifetime, that adds up to more than 2.5 billion heartbeats." },
-  { t: "Human body", q: "If you laid all of an adult's blood vessels end to end, how long would they be?", a: 100000, unit: "km", fact: "That's long enough to wrap around the Earth more than twice." },
   { t: "Human body", q: "How many bones are in one human hand?", a: 27, unit: "bones", fact: "Your two hands and two feet have 106 bones between them, more than half of your whole skeleton." },
   { t: "Human body", q: "How many chromosomes are in most human cells?", a: 46, unit: "chromosomes", fact: "That's 23 pairs: one set comes from each parent." },
   { t: "Human body", q: "How long is the smallest bone in the human body, the stapes in the ear?", a: 3, unit: "mm", fact: "It's about the size of a grain of rice, and it helps pass sound to your inner ear." },
 
   { t: "Nature", q: "How tall is the tallest known tree, a coast redwood called Hyperion?", a: 116, unit: "metres", fact: "Its exact location in California is kept secret to protect it from visitors." },
-  { t: "Nature", q: "How deep is the deepest point of the ocean, in the Mariana Trench?", a: 10935, unit: "metres", fact: "Mount Everest would fit inside it with about 2 km of water still above the summit." },
+  { t: "Nature", q: "How deep is the deepest point of the ocean, in the Mariana Trench?", a: 10.9, unit: "km", fact: "Almost 11 km. Mount Everest would fit inside it with about 2 km of water still above the summit." },
   { t: "Nature", q: "How tall is Angel Falls in Venezuela, the world's highest waterfall?", a: 979, unit: "metres", fact: "The water falls so far that much of it turns into mist before it reaches the bottom." },
   { t: "Nature", q: "What percentage of the Earth's surface is covered by water?", a: 71, unit: "%", fact: "About 97% of all that water is salty seawater." },
   { t: "Nature", q: "How deep is Lake Baikal in Siberia, the deepest lake in the world?", a: 1642, unit: "metres", fact: "It holds about a fifth of all the unfrozen fresh water on Earth." },
-  { t: "Nature", q: "How big is the Sahara desert?", a: 9.2, unit: "million km²", fact: "That's roughly the size of the United States." },
   { t: "Nature", q: "How many sides does a snowflake have?", a: 6, unit: "sides", fact: "It's because of how water molecules link up when they freeze." },
   { t: "Geography", q: "How many autonomous communities does Spain have?", a: 17, unit: "communities", fact: "Plus two autonomous cities: Ceuta and Melilla." },
   { t: "Geography", q: "How many provinces does Spain have?", a: 50, unit: "provinces", fact: "They were drawn up in 1833 and have barely changed since." },
@@ -111,7 +102,22 @@ const QUESTIONS = [
   { t: "History", q: "In what year did the 23-F coup attempt happen?", a: 1981, unit: "year", fact: "On 23 February, Antonio Tejero burst into Congress during the vote for a new prime minister." },
   { t: "History", q: "In what year did Spain join the European Economic Community?", a: 1986, unit: "year", fact: "Spain and Portugal joined on the same day, 1 January 1986." },
   { t: "History", q: "In what year was the Dos de Mayo uprising in Madrid?", a: 1808, unit: "year", fact: "Goya painted both the uprising and the executions of the following day." },
-  { t: "History", q: "In what year did Philip II make Madrid the seat of his court?", a: 1561, unit: "year", fact: "He moved the court from Toledo to Madrid." }
+  { t: "History", q: "In what year did Philip II make Madrid the seat of his court?", a: 1561, unit: "year", fact: "He moved the court from Toledo to Madrid." },
+  { t: "Space", q: "How much would a 60 kg person weigh on the Moon?", a: 10, unit: "kg", fact: "Gravity on the Moon is about one sixth of Earth's, which is why astronauts bounce around." },
+  { t: "Space", q: "How many moons does Mars have?", a: 2, unit: "moons", fact: "They're called Phobos and Deimos, and they're shaped more like potatoes than balls." },
+  { t: "Space", q: "How many planets in our solar system have rings?", a: 4, unit: "planets", fact: "Saturn's are the famous ones, but Jupiter, Uranus and Neptune have faint rings too." },
+  { t: "Space", q: "How many Earth days does Mercury take to go once around the Sun?", a: 88, unit: "days", fact: "It's the fastest planet, so a year on Mercury is shorter than three Earth months." },
+  { t: "Space", q: "How many hours does a day on Jupiter last?", a: 10, unit: "hours", fact: "It's the biggest planet, but it spins the fastest: one turn takes just under 10 hours." },
+  { t: "Space", q: "How many Earth years does Saturn take to go once around the Sun?", a: 29, unit: "years", fact: "So if you lived on Saturn, you'd only have about three birthdays in your whole life." },
+
+  { t: "Human body", q: "How many bones are in the human skull?", a: 22, unit: "bones", fact: "Only one of them moves: the lower jaw." },
+  { t: "Human body", q: "How many vertebrae are in the human spine?", a: 33, unit: "vertebrae", fact: "Some of them fuse together at the bottom to form the sacrum and the coccyx." },
+
+  { t: "Nature", q: "How many colours are traditionally counted in a rainbow?", a: 7, unit: "colours", fact: "It was Isaac Newton who decided on seven, partly to match the seven notes of a musical scale." },
+
+  { t: "History", q: "How many ships did Columbus take on his first voyage to the Americas?", a: 3, unit: "ships", fact: "The Santa María, the Pinta and the Niña." },
+  { t: "History", q: "How many years did the Reconquista last?", a: 781, unit: "years", fact: "From 711 to 1492, when the Catholic Monarchs took Granada." },
+  { t: "History", q: "How many Spanish kings have been called Felipe?", a: 6, unit: "kings", fact: "The current king, Felipe VI, came to the throne in 2014." }
 ];
 
 module.exports = QUESTIONS;
